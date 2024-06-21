@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - npm install -g npm@9
+      - npm install
+      - npm run build
+      - npm run migrate
+
+artifacts:
+  files:
+    - .ebextensions/**/*
+    - .platform/**/*
+    - dist/**/*
+    - prisma/**/*
+    - ecosystem.json
+    - package-lock.json
+    - package.json
+
+cache:
+  paths:
+    - node_modules/**/*
