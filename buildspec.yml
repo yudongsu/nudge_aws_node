@@ -1,18 +1,18 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - npm install
+  pre_build:
+    commands:
+      - npm run build
   build:
     commands:
-      - npm install -g npm@9
-      - npm install
-      - npm run build
-
+      - echo Build started on `date`
+  post_build:
+    commands:
+      - echo Build completed on `date`
 artifacts:
   files:
-    - ecosystem.json
-    - package-lock.json
-    - package.json
-
-cache:
-  paths:
-    - node_modules/**/*
+    - '**/*'
