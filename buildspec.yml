@@ -9,7 +9,9 @@ phases:
 
 artifacts:
   files:
-    - ecosystem.json
+    - .platform/**/*
+    - dist/**/*
+    - prisma/**/*
     - package-lock.json
     - package.json
 
