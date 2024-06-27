@@ -8,7 +8,6 @@ phases:
     commands:
       - npm run build
   files:
-    # - '**/*'
     - dist/**/*
     - package-lock.json
     - package.json
