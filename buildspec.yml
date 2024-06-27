@@ -9,9 +9,11 @@ phases:
 
 artifacts:
   files:
+    - .platform/**/*
     - dist/**/*
     - package-lock.json
     - package.json
+    - node_modules/**/*
 
 cache:
   paths:
