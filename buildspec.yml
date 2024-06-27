@@ -6,6 +6,7 @@ phases:
       - npm install -g npm@9
       - npm install
       - npm run build
+      - npm run start:prod
 
 artifacts:
   files:
