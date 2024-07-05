@@ -14,7 +14,7 @@ export class UserService {
 
   async findUserById(id: number) {
     const result = await this.prisma.$queryRaw`
-      SELECT * FROM "User2" WHERE id = ${id}
+      SELECT * FROM "User" WHERE id = ${id}
     `;
     console.log(`SELECT * FROM "User" WHERE id = ${id}`);
     return result;
