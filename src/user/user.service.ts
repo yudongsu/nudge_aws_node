@@ -16,6 +16,7 @@ export class UserService {
     const result = await this.prisma.$queryRaw`
       SELECT * FROM "User" WHERE id = ${id}
     `;
+    console.log(`SELECT * FROM "User" WHERE id = ${id}`);
     return result;
   }
 }
