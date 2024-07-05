@@ -6,3 +6,97 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL1")
 }
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+model User2 {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+model ad_table {
+  id           Int      @id @default(autoincrement())
+  ad_id        Int      @unique
+  w_size       Int
+  h_size       Int
+  bid_type     bidtype
+  bid_floor    Int
+  web_url      String
+  img_url      String
+  budget_daily Int
+  budget_now   Int
+  ad_status    adStatus
+}
+
+model bidClickLog {
+  id        Int      @id @default(autoincrement())
+  res_bidid String
+  res_id    String
+  res_impid String
+  ssp_id    String
+  tag_id    String
+  ad_id     String
+  bid_price Int
+  regdate   DateTime @default(now())
+}
+
+model bidCpmLog {
+  id        Int      @id @default(autoincrement())
+  ad_id     String
+  ad_price  Int
+  ad_cnt    Int
+  ad_status adStatus
+  regdate   DateTime @default(now())
+}
+
+model bidViewLog {
+  id        Int      @id @default(autoincrement())
+  res_bidid String
+  res_id    String
+  res_impid String
+  ssp_id    String
+  tag_id    String
+  ad_id     String
+  bid_price Int
+  regdate   DateTime @default(now())
+}
+
+model bidWinLog {
+  id        Int      @id @default(autoincrement())
+  res_bidid String   @unique
+  res_id    String
+  res_impid String
+  ssp_id    String
+  tag_id    String
+  ad_id     String
+  bid_price Int
+  regdate   DateTime @default(now())
+}
+
+model bid_count {
+  id          Int      @id @default(autoincrement())
+  sspId       String
+  tagid       String
+  regdate     DateTime @default(now())
+  bid_cnt     Int      @default(0)
+  bid_win     Int      @default(0)
+  bid_view    Int      @default(0)
+  bid_click   Int      @default(0)
+  bid_revenue Float    @default(0.0)
+}
+
+enum adStatus {
+  ON
+  OFF
+}
+
+enum bidtype {
+  CPC
+  CPM
+  CPI
+}
