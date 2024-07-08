@@ -4,99 +4,660 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL1")
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model ad_2_banner_map {
+  id           Int         @id @default(autoincrement())
+  user_id      Int
+  banner_id    Int
+  ad_id        Int
+  created_at   DateTime    @default(now())
+  updated_at   DateTime
+  type         ad_type
+  usage_status UsageStatus @default(USE)
+  ads          ads         @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  banners      banners     @relation(fields: [banner_id], references: [id], onDelete: Cascade)
+  users        users       @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, banner_id, ad_id])
 }
 
-model User2 {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model ad_history {
+  id                    Int                     @id @default(autoincrement())
+  user_id               Int
+  ad_id                 Int
+  created_at            DateTime                @default(now())
+  updated_at            DateTime
+  ad_history_status     ad_history_status       @default(PENDING)
+  approver              String?
+  update_note           String
+  accepted_at           DateTime?
+  reject_reason         String?
+  ads                   ads                     @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  users                 users                   @relation(fields: [user_id], references: [id])
+  ad_url_update_request ad_url_update_request[]
+  native_update_request native_update_request[]
 }
 
-model ad_table {
-  id           Int      @id @default(autoincrement())
-  ad_id        Int      @unique
-  w_size       Int
-  h_size       Int
-  bid_type     bidtype
-  bid_floor    Int
-  web_url      String
-  img_url      String
-  budget_daily Int
-  budget_now   Int
-  ad_status    adStatus
+model ad_interest_category {
+  id         Int      @id @default(autoincrement())
+  ad_id      Int      @unique
+  dep1_codes Int[]
+  dep2_codes Int[]
+  created_at DateTime @default(now())
+  updated_at DateTime
+  ads        ads      @relation(fields: [ad_id], references: [id])
 }
 
-model bidClickLog {
-  id        Int      @id @default(autoincrement())
-  res_bidid String
-  res_id    String
-  res_impid String
-  ssp_id    String
-  tag_id    String
-  ad_id     String
-  bid_price Int
-  regdate   DateTime @default(now())
+model ad_report_daily_count_kst {
+  id                        Int       @id @default(autoincrement())
+  ad_id                     Int
+  campaign_id               Int
+  total_used_budget         Int       @default(0)
+  total_imp                 Int       @default(0)
+  total_click               Int       @default(0)
+  created_at                DateTime  @db.Date
+  total_targeting_parameter Int?      @default(0)
+  ads                       ads       @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  campaigns                 campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([ad_id, created_at])
 }
 
-model bidCpmLog {
-  id        Int      @id @default(autoincrement())
-  ad_id     String
-  ad_price  Int
-  ad_cnt    Int
-  ad_status adStatus
-  regdate   DateTime @default(now())
+model ad_report_daily_count_utc {
+  id                Int       @id @default(autoincrement())
+  ad_id             Int
+  campaign_id       Int
+  total_used_budget Int       @default(0)
+  total_imp         Int       @default(0)
+  total_click       Int       @default(0)
+  created_at        DateTime  @default(now()) @db.Date
+  ads               ads       @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  campaigns         campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([ad_id, created_at])
 }
 
-model bidViewLog {
-  id        Int      @id @default(autoincrement())
-  res_bidid String
-  res_id    String
-  res_impid String
-  ssp_id    String
-  tag_id    String
-  ad_id     String
-  bid_price Int
-  regdate   DateTime @default(now())
+model ad_report_daily_user_interest_count_kst {
+  id                     Int                    @id @default(autoincrement())
+  ad_id                  Int
+  dep1_code              Int
+  dep2_code              Int
+  total_imp_weight       Float                  @default(0)
+  total_click_weight     Float                  @default(0)
+  created_at             DateTime               @default(now()) @db.Date
+  updated_at             DateTime
+  ads                    ads                    @relation(fields: [ad_id], references: [id])
+  user_interest_category user_interest_category @relation(fields: [dep1_code, dep2_code], references: [dep1_code, dep2_code])
+
+  @@unique([ad_id, dep1_code, dep2_code, created_at])
 }
 
-model bidWinLog {
-  id        Int      @id @default(autoincrement())
-  res_bidid String   @unique
-  res_id    String
-  res_impid String
-  ssp_id    String
-  tag_id    String
-  ad_id     String
-  bid_price Int
-  regdate   DateTime @default(now())
+model ad_total_count {
+  id                    Int       @id @default(autoincrement())
+  ad_id                 Int       @unique
+  campaign_id           Int
+  total_used_budget_utc Int       @default(0)
+  total_imp_utc         Int       @default(0)
+  total_click_utc       Int       @default(0)
+  created_at_utc        DateTime  @default(now())
+  created_at_kst        DateTime
+  ads                   ads       @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  campaigns             campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+}
+
+model ad_url_update_request {
+  id            Int        @id @default(autoincrement())
+  ad_history_id Int
+  pre_ad_url    String
+  post_ad_url   String
+  created_at    DateTime   @default(now())
+  updated_at    DateTime
+  ad_history    ad_history @relation(fields: [ad_history_id], references: [id])
+}
+
+model admins {
+  id         Int      @id @default(autoincrement())
+  user_id    String   @unique
+  password   String
+  name       String
+  phone_num  String
+  email      String
+  created_at DateTime @default(now())
+  updated_at DateTime
+}
+
+model ads {
+  id                                      Int                                       @id @default(autoincrement())
+  user_id                                 Int
+  name                                    String
+  campaign_id                             Int
+  budget_type                             budget_type
+  budget_amount                           Int[]
+  publish_start_date                      DateTime
+  publish_end_date                        DateTime?
+  cost_per_type                           cost_per_type?
+  target_cost                             Int
+  targeting_type                          targeting_type
+  transmission_type                       transmission_type
+  banner_type                             banner_type
+  ad_url                                  String?
+  created_at                              DateTime                                  @default(now())
+  updated_at                              DateTime
+  click_count                             Int                                       @default(0)
+  ctr                                     Float                                     @default(0)
+  daily_budget_used                       Float                                     @default(0)
+  imp_count                               Int                                       @default(0)
+  activation_status                       activation_status                         @default(UNDER_REVIEW)
+  reject_reason                           String?
+  status                                  review_status                             @default(UNDER_REVIEW)
+  accepted_at                             DateTime?
+  ad_status                               ad_status2                                @default(APPLICATION)
+  applied_at                              DateTime                                  @default(now())
+  manager_id                              Int?
+  app_id                                  Int?
+  imp_status_reason                       imp_status_reason?                        @default(UNDER_REVIEW)
+  age_targeting                           Int[]
+  deveiceid_targeting                     Int?
+  gender_targeting                        Int[]
+  user_interest_targeting                 Int?
+  ad_2_banner_map                         ad_2_banner_map[]
+  ad_history                              ad_history[]
+  ad_interest_category                    ad_interest_category?
+  ad_report_daily_count_kst               ad_report_daily_count_kst[]
+  ad_report_daily_count_utc               ad_report_daily_count_utc[]
+  ad_report_daily_user_interest_count_kst ad_report_daily_user_interest_count_kst[]
+  ad_total_count                          ad_total_count?
+  apps                                    apps?                                     @relation(fields: [app_id], references: [id])
+  campaigns                               campaigns                                 @relation(fields: [campaign_id], references: [id])
+  users                                   users                                     @relation(fields: [user_id], references: [id])
+  advertisement_table                     advertisement_table[]
+  device_id                               device_id[]
+  natives                                 natives?
+}
+
+model advertisement_table {
+  id                           Int            @id @default(autoincrement())
+  advertisement_id             Int
+  width                        Int?
+  height                       Int?
+  img_url                      String?
+  target_cost                  Float
+  daily_budget                 Float          @default(0)
+  daily_budget_used            Float          @default(0)
+  daily_budget_last_flushed_at DateTime?
+  ad_url                       String?
+  ad_status                    ad_status      @default(OFF)
+  cost_per_type                cost_per_type?
+  banner_id                    Int
+  user_id                      Int?
+  created_at                   DateTime       @default(now())
+  updated_at                   DateTime
+  usage_status                 UsageStatus    @default(USE)
+  ads                          ads            @relation(fields: [advertisement_id], references: [id])
+  banners                      banners        @relation(fields: [banner_id], references: [id])
+  users                        users?         @relation(fields: [user_id], references: [id])
+
+  @@unique([advertisement_id, banner_id])
+}
+
+model apps {
+  id                   Int         @id @default(autoincrement())
+  name                 String
+  app_market_url       String
+  domain               String?
+  app_market_bundle_id String?
+  category             String?
+  description          String?
+  created_at           DateTime    @default(now())
+  updated_at           DateTime
+  user_id              Int
+  platform             platform
+  os                   os
+  market               market?
+  age_rating           age_rating?
+  ads                  ads[]
+  users                users       @relation(fields: [user_id], references: [id])
+}
+
+model banners {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  image_width         Int
+  image_height        Int
+  file_size           Float
+  created_at          DateTime              @default(now())
+  updated_at          DateTime
+  user_id             Int
+  activation_status   activation_status     @default(UNDER_REVIEW)
+  reject_reason       String?
+  status              review_status         @default(UNDER_REVIEW)
+  native_id           Int?
+  ad_2_banner_map     ad_2_banner_map[]
+  advertisement_table advertisement_table[]
+  users               users                 @relation(fields: [user_id], references: [id])
+  native_2_banner_map native_2_banner_map[]
+}
+
+model bid_click_log {
+  id              Int      @id @default(autoincrement())
+  response_bid_id String
+  response_id     String
+  bid_price       Float
+  reg_date        DateTime
 }
 
 model bid_count {
-  id          Int      @id @default(autoincrement())
-  sspId       String
-  tagid       String
-  regdate     DateTime @default(now())
-  bid_cnt     Int      @default(0)
-  bid_win     Int      @default(0)
-  bid_view    Int      @default(0)
-  bid_click   Int      @default(0)
-  bid_revenue Float    @default(0.0)
+  id        Int      @id @default(autoincrement())
+  ssp_id    String
+  tag_id    String
+  bid_cnt   Int      @default(0)
+  bid_win   Int      @default(0)
+  bid_view  Int      @default(0)
+  bid_click Int      @default(0)
+  reg_date  DateTime
+  revenue   Float    @default(0)
+
+  @@unique([ssp_id, tag_id, reg_date])
 }
 
-enum adStatus {
+model bid_cpm_log {
+  id               Int      @id @default(autoincrement())
+  advertisement_id Int
+  total_bid_price  Float    @default(0)
+  count            Int      @default(0)
+  status           Int
+  updated_at       DateTime
+}
+
+model bid_device_id_log {
+  id              Int      @id @default(autoincrement())
+  response_bid_id String
+  response_id     String
+  device_id       String
+  advertiser_id   Int
+  reg_date        DateTime
+}
+
+model bid_view_log {
+  id               Int      @id @default(autoincrement())
+  response_bid_id  String   @unique
+  response_id      String
+  advertisement_id Int
+  bid_price        Float
+  num              Int      @default(0)
+  reg_date         DateTime
+}
+
+model bid_win_log {
+  id               Int      @id @default(autoincrement())
+  response_bid_id  String   @unique
+  response_id      String
+  response_imp_id  String
+  ssp_id           String
+  tag_id           String
+  advertisement_id Int
+  bid_price        Float
+  reg_date         DateTime
+  device_id        String   @default("")
+  uti_category     Int[]
+}
+
+model campaigns {
+  id                        Int                         @id @default(autoincrement())
+  name                      String                      @unique
+  created_at                DateTime                    @default(now())
+  updated_at                DateTime
+  user_id                   Int
+  activation_status         activation_status           @default(ON)
+  ad_report_daily_count_kst ad_report_daily_count_kst[]
+  ad_report_daily_count_utc ad_report_daily_count_utc[]
+  ad_total_count            ad_total_count[]
+  ads                       ads[]
+  users                     users                       @relation(fields: [user_id], references: [id])
+}
+
+model device_id {
+  id               Int           @id @default(autoincrement())
+  user_id          Int
+  ad_id            Int?
+  file_name        String
+  status           device_status @default(NOT_USE)
+  upload_status    upload_status @default(READY)
+  total_row_count  Int?
+  usable_row_count Int?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime
+  ads              ads?          @relation(fields: [ad_id], references: [id])
+  users            users         @relation(fields: [user_id], references: [id])
+}
+
+model email_verification_log {
+  id                      Int      @id @default(autoincrement())
+  session_id              String
+  email                   String
+  email_verification_code String
+  expire_at               DateTime
+  is_verified             Boolean
+  created_at              DateTime @default(now())
+  updated_at              DateTime
+}
+
+model logos {
+  id            Int           @id @default(autoincrement())
+  user_id       Int
+  name          String
+  logo_size     String
+  logo_url      String
+  reject_reason String?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime
+  url_type      url_type
+  review_status review_status @default(UNDER_REVIEW)
+  users         users         @relation(fields: [user_id], references: [id])
+  natives       natives[]
+}
+
+model native_2_banner_map {
+  id           Int         @id @default(autoincrement())
+  user_id      Int
+  native_id    Int
+  banner_id    Int
+  usage_status UsageStatus @default(USE)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime
+  banners      banners     @relation(fields: [banner_id], references: [id], onDelete: Cascade)
+  natives      natives     @relation(fields: [native_id], references: [id], onDelete: Cascade)
+  users        users       @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, banner_id, native_id])
+}
+
+model native_update_request {
+  id              Int        @id @default(autoincrement())
+  ad_history_id   Int
+  pre_brand_name  String
+  post_brand_name String
+  pre_logo_id     Int
+  post_logo_id    Int
+  pre_title       String
+  post_title      String
+  pre_text        String
+  post_text       String
+  pre_button      String
+  post_button     String
+  created_at      DateTime   @default(now())
+  updated_at      DateTime
+  ad_history      ad_history @relation(fields: [ad_history_id], references: [id])
+}
+
+model natives {
+  id                  Int                   @id @default(autoincrement())
+  user_id             Int
+  ad_id               Int                   @unique
+  brand_name          String
+  logo_id             Int
+  title               String
+  text                String
+  button              String
+  created_at          DateTime              @default(now())
+  updated_at          DateTime
+  native_2_banner_map native_2_banner_map[]
+  ads                 ads                   @relation(fields: [ad_id], references: [id], onDelete: Cascade)
+  logos               logos                 @relation(fields: [logo_id], references: [id])
+  users               users                 @relation(fields: [user_id], references: [id])
+}
+
+model payment_history {
+  id             Int            @id @default(autoincrement())
+  user_id        Int
+  payment_amount Int            @default(0)
+  charge_amount  Int            @default(0)
+  note           String?
+  created_at     DateTime       @default(now())
+  updated_at     DateTime
+  payment_type   payment_type   @default(DEPOSIT_WITHOUT_PASSBOOK)
+  payment_status payment_status @default(WAITING_FOR_DEPOSIT)
+  user_budget_id Int?
+  user_budget    user_budget?   @relation(fields: [user_budget_id], references: [id])
+  users          users          @relation(fields: [user_id], references: [id])
+}
+
+model sms_verification_log {
+  id                    Int      @id @default(autoincrement())
+  session_id            String
+  phone_num             String
+  sms_verification_code String
+  expire_at             DateTime
+  is_verified           Boolean
+  created_at            DateTime @default(now())
+  updated_at            DateTime
+}
+
+model user_budget {
+  id              Int               @id @default(autoincrement())
+  user_id         Int               @unique
+  budget          Int               @default(0)
+  used_budget     Int               @default(0)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime
+  payment_history payment_history[]
+  users           users             @relation(fields: [user_id], references: [id])
+}
+
+model user_daily_revenue_kst {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  imp         Int      @default(0)
+  click       Int      @default(0)
+  used_budget Float    @default(0)
+  deposit     Float    @default(0)
+  refund      Float    @default(0)
+  reg_date    DateTime @db.Date
+  created_at  DateTime
+  updated_at  DateTime
+  users       users    @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, reg_date])
+}
+
+model user_interest_categories_on_ads {
+  dep1_code              Int
+  dep2_code              Int
+  age                    Int
+  gender                 Int
+  created_at             DateTime               @default(now())
+  updated_at             DateTime
+  ad_ids                 Int[]
+  id                     Int                    @id @default(autoincrement())
+  user_interest_category user_interest_category @relation(fields: [dep1_code, dep2_code], references: [dep1_code, dep2_code])
+
+  @@unique([age, gender, dep1_code, dep2_code])
+}
+
+model user_interest_category {
+  id                                      Int                                       @id @default(autoincrement())
+  dep1_code                               Int
+  dep2_code                               Int
+  dep1_code_name                          String
+  dep2_code_name                          String
+  created_at                              DateTime                                  @default(now())
+  updated_at                              DateTime
+  ad_report_daily_user_interest_count_kst ad_report_daily_user_interest_count_kst[]
+  user_interest_categories_on_ads         user_interest_categories_on_ads[]
+
+  @@unique([dep1_code, dep2_code])
+}
+
+model users {
+  id                       Int                      @id @default(autoincrement())
+  type                     Int
+  user_id                  String                   @unique
+  password                 String
+  name                     String
+  phone_num                String
+  email                    String
+  co_name                  String
+  co_reader_name           String
+  co_registration_num      String
+  co_registration_num_file String
+  co_website               String
+  co_zip                   String
+  co_address1              String
+  co_address2              String
+  admin_id                 Int?                     @default(1)
+  created_at               DateTime                 @default(now())
+  review_status            review_status            @default(UNDER_REVIEW)
+  updated_at               DateTime?
+  bank_file                String?
+  ad_2_banner_map          ad_2_banner_map[]
+  ad_history               ad_history[]
+  ads                      ads[]
+  advertisement_table      advertisement_table[]
+  apps                     apps[]
+  banners                  banners[]
+  campaigns                campaigns[]
+  device_id                device_id[]
+  logos                    logos[]
+  native_2_banner_map      native_2_banner_map[]
+  natives                  natives[]
+  payment_history          payment_history[]
+  user_budget              user_budget?
+  user_daily_revenue_kst   user_daily_revenue_kst[]
+}
+
+enum UsageStatus {
+  USE
+  NOT_USE
+}
+
+enum activation_status {
   ON
   OFF
+  UNDER_REVIEW
 }
 
-enum bidtype {
+enum ad_history_status {
+  PENDING
+  APPROVED
+  REJECTED
+  AUTO_APPROVED
+  AUTO_REJECTED
+}
+
+enum ad_status {
+  ON
+  OFF
+  underReview
+  SLEEP
+}
+
+enum ad_status2 {
+  APPLICATION
+  MODIFICATION
+}
+
+enum ad_type {
+  IMAGE
+  NATIVE
+}
+
+enum admin_ad_search_field {
+  AGENCY
+  ADVERTISER
+  CAMPAIGN
+  AD_NAME
+  MANAGER
+}
+
+enum age_rating {
+  ALL
+  TWELVE
+  FIFTEEN
+  NINETEEN
+}
+
+enum banner_type {
+  FIXED
+  DYNAMIC
+}
+
+enum budget_type {
+  DAILY
+  WEEKLY
+}
+
+enum cost_per_type {
   CPC
   CPM
-  CPI
+}
+
+enum device_status {
+  INCLUDE
+  EXCLUDE
+  NOT_USE
+  DELETED
+}
+
+enum imp_status_reason {
+  SCHEDULED
+  DAILY_BUDGET_DEPLETED
+  USER_BUDGET_DEPLETED
+  MANUAL
+  UNDER_REVIEW
+  PENDING
+}
+
+enum market {
+  GOOGLEPLAY
+  OTHER
+}
+
+enum os {
+  ANDROID
+  IOS
+}
+
+enum payment_status {
+  WAITING_FOR_DEPOSIT
+  PAYMENT_COMPLETED
+}
+
+enum payment_type {
+  DEPOSIT_WITHOUT_PASSBOOK
+}
+
+enum platform {
+  APP
+}
+
+enum review_status {
+  REJECT
+  ACTIVE
+  UNDER_REVIEW
+}
+
+enum targeting_type {
+  RETARGETING
+  USER_INTEREST
+  UA
+  BRANDING_FOCUS
+}
+
+enum transmission_type {
+  WEB
+  MOBILEAPP
+}
+
+enum upload_status {
+  SUCCESS
+  FAIL
+  PROGRESS
+  READY
+}
+
+enum url_type {
+  WEB
+  APP
 }
