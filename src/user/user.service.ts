@@ -19,4 +19,12 @@ export class UserService {
     console.log(`SELECT * FROM "User" WHERE id = ${id}`);
     return result;
   }
+
+  async getAllUser() {
+    const result = await this.prisma.$queryRaw`
+      SELECT * FROM "users"
+    `;
+    //console.log(`SELECT * FROM "User" WHERE id = ${id}`);
+    return result;
+  }
 }

@@ -24,4 +24,10 @@ export class UserController {
   async getUserById(@Param('id') id: string) {
     return this.userService.findUserById(Number(id));
   }
+
+  @ApiOperation({ summary: 'Get All user ' })
+  @Get()
+  async getAllUser() {
+    return this.userService.getAllUser();
+  }
 }

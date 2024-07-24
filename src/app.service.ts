@@ -12,6 +12,12 @@ export class AppService {
       .toISOString()
       .replace(/T/, ' ')
       .replace(/\..+/, '');
-    return `<b>Server is running for</b> ${process.uptime()} seconds. <br><b>Nowtime(UTC)</b> ${formattedNow} <br>`;
+
+    const returnText = `<b>Server is running for</b> ${process.uptime()} seconds. <br>
+    <b>Nowtime(UTC)</b> ${formattedNow} <br> 
+    <b>NODE_ENV</b> : ${process.env.NODE_ENV} <br> 
+    <b>DATABASE_URL</b> : ${process.env.DATABASE_URL} <br>`;
+
+    return returnText;
   }
 }

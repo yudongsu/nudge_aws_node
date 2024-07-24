@@ -527,6 +527,11 @@ model users {
   user_daily_revenue_kst   user_daily_revenue_kst[]
 }
 
+model uesr2 {
+  id   Int     @id
+  name String?
+}
+
 enum UsageStatus {
   USE
   NOT_USE
